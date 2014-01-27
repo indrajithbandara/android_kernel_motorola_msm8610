@@ -110,6 +110,10 @@ Parent node optional properties:
                                         charge at a reduced rate.
 - qcom,step-charge-current             Reduced charge rate for High Voltage batteries
                                         which are above a certain Voltage threshold
+- qcom,parallel-ovp-mode		When this option is enabled, it allows charging through both
+					DC and USB OVP FETs. Please note that this should only
+					be enabled in board designs with PM8941 which have DC_IN
+					and USB_IN connected via a short.
 
 Sub node required structure:
 - A qcom,chg node must be a child of an SPMI node that has specified
