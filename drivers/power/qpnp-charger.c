@@ -117,6 +117,7 @@
 #define BOOST_ILIM				0x78
 #define USB_SPARE				0xDF
 #define DC_COMP_OVR1				0xE9
+#define CHGR_COMP_OVR1				0xEE
 
 #define REG_OFFSET_PERP_SUBTYPE			0x05
 
@@ -421,6 +422,8 @@ struct qpnp_chg_chip {
 	bool				maint_chrg;
 };
 
+static void
+qpnp_chg_set_appropriate_battery_current(struct qpnp_chg_chip *chip);
 
 static struct of_device_id qpnp_charger_match_table[] = {
 	{ .compatible = QPNP_CHARGER_DEV_NAME, },
@@ -1912,6 +1915,29 @@ static int qpnp_chg_is_fastchg_on(struct qpnp_chg_chip *chip)
 	return (chgr_sts & FAST_CHG_ON_IRQ) ? 1 : 0;
 }
 
+#define VBATDET_BYPASS	0x01
+static int
+bypass_vbatdet_comp(struct qpnp_chg_chip *chip, bool bypass)
+{
+	int rc;
+
+	pr_debug("bypass %d\n", bypass);
+		rc = qpnp_chg_masked_write(chip,
+			chip->chgr_base + SEC_ACCESS,
+			0xA5,
+			0xA5, 1);
+	rc |= qpnp_chg_masked_write(chip,
+			chip->chgr_base + CHGR_COMP_OVR1,
+			0xFF,
+			bypass ? VBATDET_BYPASS : 0, 1);
+	if (rc) {
+		pr_err("Failed to bypass vbatdet comp rc = %d\n", rc);
+		return rc;
+	}
+
+	return rc;
+}
+
 static irqreturn_t
 qpnp_chg_chgr_chg_fastchg_irq_handler(int irq, void *_chip)
 {
@@ -1939,6 +1965,11 @@ qpnp_chg_chgr_chg_fastchg_irq_handler(int irq, void *_chip)
 
 		if (fastchg_on) {
 			chip->chg_done = false;
+			bypass_vbatdet_comp(chip, 1);
+			if (chip->bat_is_warm || chip->bat_is_cool) {
+				qpnp_chg_set_appropriate_vddmax(chip);
+				qpnp_chg_set_appropriate_battery_current(chip);
+			}
 
 			if (chip->resuming_charging) {
 				chip->resuming_charging = false;
@@ -1955,6 +1986,8 @@ qpnp_chg_chgr_chg_fastchg_irq_handler(int irq, void *_chip)
 		} else {
 			if (chip->parallel_ovp_mode)
 				switch_parallel_ovp_mode(chip, 0);
+			if (!chip->bat_is_warm && !chip->bat_is_cool)
+				bypass_vbatdet_comp(chip, 0);
 		}
 	}
 
@@ -2882,6 +2915,25 @@ static int qpnp_chg_tchg_max_set(struct qpnp_chg_chip *chip, int minutes)
 	}
 
 	return 0;
+}
+
+static void
+qpnp_chg_set_appropriate_battery_current(struct qpnp_chg_chip *chip)
+{
+	unsigned int chg_current = chip->max_bat_chg_current;
+
+	if (chip->bat_is_cool)
+		chg_current = min(chg_current, chip->cool_bat_chg_ma);
+
+	if (chip->bat_is_warm)
+		chg_current = min(chg_current, chip->warm_bat_chg_ma);
+
+	if (chip->therm_lvl_sel != 0 && chip->thermal_mitigation)
+		chg_current = min(chg_current,
+			chip->thermal_mitigation[chip->therm_lvl_sel]);
+
+	pr_debug("setting %d mA\n", chg_current);
+	qpnp_chg_ibatmax_set(chip, chg_current);
 }
 
 static int
