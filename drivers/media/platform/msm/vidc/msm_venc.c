@@ -409,50 +409,6 @@ static struct msm_vidc_ctrl msm_venc_ctrls[] = {
 		.cluster = MSM_VENC_CTRL_CLUSTER_DEINTERLACE,
 	},
 	{
-		.id = V4L2_CID_MPEG_VIDC_VIDEO_USELTRFRAME,
-		.name = "H264 Use LTR",
-		.type = V4L2_CTRL_TYPE_BUTTON,
-		.minimum = 0,
-		.maximum = (MAX_LTR_FRAME_COUNT - 1),
-		.default_value = 0,
-		.step = 1,
-		.qmenu = NULL,
-		.cluster = 0,
-	},
-	{
-		.id = V4L2_CID_MPEG_VIDC_VIDEO_LTRCOUNT,
-		.name = "Ltr Count",
-		.type = V4L2_CTRL_TYPE_INTEGER,
-		.minimum = 0,
-		.maximum = MAX_LTR_FRAME_COUNT,
-		.default_value = 0,
-		.step = 1,
-		.qmenu = NULL,
-		.cluster = MSM_VENC_CTRL_CLUSTER_USE_LTRFRAME,
-	},
-	{
-		.id = V4L2_CID_MPEG_VIDC_VIDEO_LTRMODE,
-		.name = "Ltr Mode",
-		.type = V4L2_CTRL_TYPE_INTEGER,
-		.minimum = V4L2_MPEG_VIDC_VIDEO_LTR_MODE_DISABLE,
-		.maximum = V4L2_MPEG_VIDC_VIDEO_LTR_MODE_PERIODIC,
-		.default_value = V4L2_MPEG_VIDC_VIDEO_LTR_MODE_DISABLE,
-		.step = 1,
-		.qmenu = NULL,
-		.cluster = MSM_VENC_CTRL_CLUSTER_USE_LTRFRAME,
-	},
-	{
-		.id = V4L2_CID_MPEG_VIDC_VIDEO_MARKLTRFRAME,
-		.name = "H264 Mark LTR",
-		.type = V4L2_CTRL_TYPE_BUTTON,
-		.minimum = 0,
-		.maximum = (MAX_LTR_FRAME_COUNT - 1),
-		.default_value = 0,
-		.step = 1,
-		.qmenu = NULL,
-		.cluster = 0,
-	},
-	{
 		.id = V4L2_CID_MPEG_VIDEO_H264_I_FRAME_QP,
 		.name = "I Frame Quantization",
 		.type = V4L2_CTRL_TYPE_INTEGER,
@@ -800,14 +756,46 @@ static struct msm_vidc_ctrl msm_venc_ctrls[] = {
 		.cluster = MSM_VENC_CTRL_CLUSTER_DEINTERLACE,
 	},
 	{
-		.id = V4L2_CID_MPEG_VIDC_VIDEO_REQUEST_SEQ_HEADER,
-		.name = "Request Seq Header",
+		.id = V4L2_CID_MPEG_VIDC_VIDEO_USELTRFRAME,
+		.name = "H264 Use LTR",
 		.type = V4L2_CTRL_TYPE_BUTTON,
 		.minimum = 0,
-		.maximum = 0,
+		.maximum = (MAX_LTR_FRAME_COUNT - 1),
 		.default_value = 0,
-		.step = 0,
-		.menu_skip_mask = 0,
+		.step = 1,
+		.qmenu = NULL,
+		.cluster = 0,
+	},
+	{
+		.id = V4L2_CID_MPEG_VIDC_VIDEO_LTRCOUNT,
+		.name = "Ltr Count",
+		.type = V4L2_CTRL_TYPE_INTEGER,
+		.minimum = 0,
+		.maximum = MAX_LTR_FRAME_COUNT,
+		.default_value = 0,
+		.step = 1,
+		.qmenu = NULL,
+		.cluster = MSM_VENC_CTRL_CLUSTER_USE_LTRFRAME,
+	},
+	{
+		.id = V4L2_CID_MPEG_VIDC_VIDEO_LTRMODE,
+		.name = "Ltr Mode",
+		.type = V4L2_CTRL_TYPE_INTEGER,
+		.minimum = V4L2_MPEG_VIDC_VIDEO_LTR_MODE_DISABLE,
+		.maximum = V4L2_MPEG_VIDC_VIDEO_LTR_MODE_PERIODIC,
+		.default_value = V4L2_MPEG_VIDC_VIDEO_LTR_MODE_DISABLE,
+		.step = 1,
+		.qmenu = NULL,
+		.cluster = MSM_VENC_CTRL_CLUSTER_USE_LTRFRAME,
+	},
+	{
+		.id = V4L2_CID_MPEG_VIDC_VIDEO_MARKLTRFRAME,
+		.name = "H264 Mark LTR",
+		.type = V4L2_CTRL_TYPE_BUTTON,
+		.minimum = 0,
+		.maximum = (MAX_LTR_FRAME_COUNT - 1),
+		.default_value = 0,
+		.step = 1,
 		.qmenu = NULL,
 		.cluster = 0,
 	},
@@ -2141,10 +2129,6 @@ static int try_set_ctrl(struct msm_vidc_inst *inst, struct v4l2_ctrl *ctrl)
 		property_id = HAL_CONFIG_VENC_MARKLTRFRAME;
 		markltr.markframe = ctrl->val;
 		pdata = &markltr;
-		break;
-
-	case V4L2_CID_MPEG_VIDC_VIDEO_REQUEST_SEQ_HEADER:
-		atomic_inc(&inst->get_seq_hdr_cnt);
 		break;
 	case V4L2_CID_MPEG_VIDC_VIDEO_HIER_P_NUM_LAYERS:
 		property_id = HAL_PARAM_VENC_HIER_P_NUM_FRAMES;
