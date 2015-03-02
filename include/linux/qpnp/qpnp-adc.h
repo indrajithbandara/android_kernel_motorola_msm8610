@@ -1010,14 +1010,6 @@ struct qpnp_adc_amux_properties {
 	struct qpnp_vadc_chan_properties	chan_prop[0];
 };
 
-/* SW index's for PMIC type and version used by QPNP VADC and IADC */
-#define QPNP_REV_ID_8941_3_1	1
-#define QPNP_REV_ID_8026_1_0	2
-#define QPNP_REV_ID_8026_2_0	3
-#define QPNP_REV_ID_8110_1_0	4
-#define QPNP_REV_ID_8026_2_1	5
-#define QPNP_REV_ID_8110_2_0	6
-
 /* Public API */
 #if defined(CONFIG_SENSORS_QPNP_ADC_VOLTAGE)				\
 			|| defined(CONFIG_SENSORS_QPNP_ADC_VOLTAGE_MODULE)
@@ -1382,16 +1374,9 @@ int32_t qpnp_vadc_iadc_sync_complete_request(struct qpnp_vadc_chip *dev,
  * qpnp_vadc_sns_comp_result() - Compensate vbatt readings based on temperature
  * @dev:	Structure device for qpnp vadc
  * @result:	Voltage in uV that needs compensation.
- * @is_pon_ocv: Whether the reading is from a power on OCV or not
  */
 int32_t qpnp_vbat_sns_comp_result(struct qpnp_vadc_chip *dev,
-					int64_t *result, bool is_pon_ocv);
-/**
- * qpnp_adc_get_revid_version() - Obtain the PMIC number and revision.
- * @dev:	Structure device node.
- * returns internal mapped PMIC number and revision id.
- */
-int qpnp_adc_get_revid_version(struct device *dev);
+						int64_t *result);
 #else
 static inline int32_t qpnp_vadc_read(struct qpnp_vadc_chip *dev,
 				uint32_t channel,
